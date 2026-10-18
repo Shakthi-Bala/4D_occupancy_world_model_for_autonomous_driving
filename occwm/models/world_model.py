@@ -113,8 +113,11 @@ class RefineHead(nn.Module):
 
 class OccWorldModel(nn.Module):
     def __init__(self, vae: OccVAE, latent_shift, latent_scale, n_past=5, n_future=6, dim=512,
-                 depth=8, heads=8, patch=2, finetune_decoder=True, checkpoint_decode=True):
+                 depth=8, heads=8, patch=2, finetune_decoder=True, checkpoint_decode=True, warp=True):
         super().__init__()
+        # warp=False is the ablation: no geometric warping anywhere (identity transforms), so
+        # the trajectory reaches the model only through adaLN conditioning, as in DOME.
+        self.warp = warp
         self.vae = vae
         for p in vae.parameters():
             p.requires_grad = False
@@ -190,6 +193,8 @@ class OccWorldModel(nn.Module):
         T_t_p = se2(past_poses[..., 0], past_poses[..., 1], past_poses[..., 2])   # B P 3 3
         T_t_k = se2(fut_poses[..., 0], fut_poses[..., 1], fut_poses[..., 2])      # B F 3 3
         T_p_k = rel_pose(T_t_p[:, None], T_t_k[:, :, None])                       # B F P 3 3
+        if not self.warp:
+            T_p_k = torch.eye(3, device=T_p_k.device).expand_as(T_p_k)
 
         src = torch.cat([z_past, torch.ones_like(z_past[:, :, :1])], 2)           # B P C+1 H W
         src = src[:, None].expand(b, f, p, c + 1, h, w).reshape(-1, c + 1, h, w)
@@ -217,6 +222,8 @@ class OccWorldModel(nn.Module):
         """Current occupancy warped into every future frame: (B, F, X, Y, Z)."""
         b, f = fut_poses.shape[:2]
         T = se2(fut_poses[..., 0], fut_poses[..., 1], fut_poses[..., 2]).reshape(-1, 3, 3)
+        if not self.warp:
+            T = torch.eye(3, device=T.device).expand_as(T)
         occ = ctx["occ_now"][:, None].expand(b, f, *ctx["occ_now"].shape[1:]).flatten(0, 1)
         return warp_occupancy(occ, T).reshape(b, f, *occ.shape[1:])
 
@@ -256,6 +263,6 @@ def load_world_model(path, device="cuda"):
     a = ck["args"]
     vae = OccVAE(latent_ch=a["latent_ch"])
     wm = OccWorldModel(vae, ck["latent_shift"], ck["latent_scale"], dim=a["dim"], depth=a["depth"],
-                       heads=a["heads"])
+                       heads=a["heads"], warp=not a.get("no_warp", False))
     wm.load_state_dict(ck["model"])
     return wm.to(device).eval()

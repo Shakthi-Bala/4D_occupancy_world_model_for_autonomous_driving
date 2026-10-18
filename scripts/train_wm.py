@@ -68,6 +68,7 @@ def main():
     ap.add_argument("--dim", type=int, default=512)
     ap.add_argument("--depth", type=int, default=8)
     ap.add_argument("--heads", type=int, default=8)
+    ap.add_argument("--no-warp", action="store_true", help="ablation: trajectory via adaLN only")
     ap.add_argument("--latent-weight", type=float, default=1.0)
     ap.add_argument("--lovasz", type=float, default=1.0)
     ap.add_argument("--val-stride", type=int, default=8)
@@ -90,7 +91,8 @@ def main():
     shift, scale = latent_stats(vae, OccFrames(index, "train"), device)
     args.latent_ch = vck["args"]["latent_ch"]
 
-    model = OccWorldModel(vae, shift, scale, N_PAST, N_FUTURE, args.dim, args.depth, args.heads).to(device)
+    model = OccWorldModel(vae, shift, scale, N_PAST, N_FUTURE, args.dim, args.depth, args.heads,
+                          warp=not args.no_warp).to(device)
     dec_params = [p for n, p in model.named_parameters() if n.startswith("vae.") and p.requires_grad]
     new_params = [p for n, p in model.named_parameters() if not n.startswith("vae.")]
     if is_main():
