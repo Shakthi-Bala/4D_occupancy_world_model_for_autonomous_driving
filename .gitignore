@@ -1,0 +1,32 @@
+# secrets
+.discord_webhook
+.env
+
+# python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ipynb_checkpoints/
+
+# data, checkpoints, run outputs (live on /scratch, see README)
+data/
+runs/
+checkpoints/
+*.pt
+*.pth
+*.ckpt
+*.npz
+*.npy
+*.tar.gz
+wandb/
+logs/
+slurm-*.out
+
+# media is regenerated; only curated files under assets/ are tracked
+media/
+!assets/**
+
+.vscode/
+.idea/
+.DS_Store
