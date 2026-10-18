@@ -1,0 +1,13 @@
+name: tests
+on: [push, pull_request]
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install torch==2.8.0 --index-url https://download.pytorch.org/whl/cpu
+      - run: pip install numpy==2.4.6 scikit-learn==1.9.1 pillow==12.3.0 pytest==9.1.1
+      - run: pytest -q tests

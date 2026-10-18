@@ -1,0 +1,10 @@
+# Tested with Python 3.11, CUDA 12.8. Install torch from the matching index first:
+#   pip install torch==2.8.0 --index-url https://download.pytorch.org/whl/cu128
+torch==2.8.0
+numpy==2.4.6
+scikit-learn==1.9.1
+pillow==12.3.0
+imageio==2.38.1
+imageio-ffmpeg==0.6.0
+matplotlib==3.11.2
+pytest==9.1.1
