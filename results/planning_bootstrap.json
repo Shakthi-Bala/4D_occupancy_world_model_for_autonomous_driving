@@ -1,0 +1,74 @@
+{
+  "col_agent: prior - prior+wm": {
+    "diff": 0.048,
+    "ci95": [
+      -0.006,
+      0.099
+    ],
+    "windows_changed": 48
+  },
+  "col_agent: prior+static - prior+wm": {
+    "diff": 0.036,
+    "ci95": [
+      -0.018,
+      0.091
+    ],
+    "windows_changed": 46
+  },
+  "col_agent: prior - prior+static": {
+    "diff": 0.012,
+    "ci95": [
+      -0.033,
+      0.055
+    ],
+    "windows_changed": 57
+  },
+  "col_obst: prior - prior+wm": {
+    "diff": 0.274,
+    "ci95": [
+      0.179,
+      0.374
+    ],
+    "windows_changed": 142
+  },
+  "col_obst: prior+static - prior+wm": {
+    "diff": 0.09,
+    "ci95": [
+      0.017,
+      0.162
+    ],
+    "windows_changed": 78
+  },
+  "col_obst: prior - prior+static": {
+    "diff": 0.183,
+    "ci95": [
+      0.097,
+      0.275
+    ],
+    "windows_changed": 143
+  },
+  "off: prior - prior+wm": {
+    "diff": 0.052,
+    "ci95": [
+      0.023,
+      0.086
+    ],
+    "windows_changed": 26
+  },
+  "off: prior+static - prior+wm": {
+    "diff": 0.018,
+    "ci95": [
+      0.006,
+      0.033
+    ],
+    "windows_changed": 15
+  },
+  "off: prior - prior+static": {
+    "diff": 0.034,
+    "ci95": [
+      0.004,
+      0.069
+    ],
+    "windows_changed": 35
+  }
+}

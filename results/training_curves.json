@@ -1,0 +1,167 @@
+{
+ "wm": [
+  {
+   "epoch": 1,
+   "val_miou_avg": 36.28,
+   "val_iou_avg": 44.9
+  },
+  {
+   "epoch": 2,
+   "val_miou_avg": 37.87,
+   "val_iou_avg": 46.8
+  },
+  {
+   "epoch": 3,
+   "val_miou_avg": 38.61,
+   "val_iou_avg": 47.55
+  },
+  {
+   "epoch": 4,
+   "val_miou_avg": 39.5,
+   "val_iou_avg": 48.69
+  },
+  {
+   "epoch": 5,
+   "val_miou_avg": 39.97,
+   "val_iou_avg": 48.95
+  },
+  {
+   "epoch": 6,
+   "val_miou_avg": 40.32,
+   "val_iou_avg": 49.32
+  },
+  {
+   "epoch": 7,
+   "val_miou_avg": 40.24,
+   "val_iou_avg": 49.2
+  },
+  {
+   "epoch": 8,
+   "val_miou_avg": 40.51,
+   "val_iou_avg": 49.35
+  },
+  {
+   "epoch": 9,
+   "val_miou_avg": 40.92,
+   "val_iou_avg": 49.73
+  },
+  {
+   "epoch": 10,
+   "val_miou_avg": 41.05,
+   "val_iou_avg": 50.0
+  },
+  {
+   "epoch": 11,
+   "val_miou_avg": 41.27,
+   "val_iou_avg": 50.2
+  },
+  {
+   "epoch": 12,
+   "val_miou_avg": 41.51,
+   "val_iou_avg": 50.41
+  },
+  {
+   "epoch": 13,
+   "val_miou_avg": 41.47,
+   "val_iou_avg": 50.3
+  },
+  {
+   "epoch": 14,
+   "val_miou_avg": 41.59,
+   "val_iou_avg": 50.47
+  },
+  {
+   "epoch": 15,
+   "val_miou_avg": 41.66,
+   "val_iou_avg": 50.43
+  },
+  {
+   "epoch": 16,
+   "val_miou_avg": 41.74,
+   "val_iou_avg": 50.5
+  },
+  {
+   "epoch": 17,
+   "val_miou_avg": 41.75,
+   "val_iou_avg": 50.47
+  },
+  {
+   "epoch": 18,
+   "val_miou_avg": 41.71,
+   "val_iou_avg": 50.42
+  },
+  {
+   "epoch": 19,
+   "val_miou_avg": 41.77,
+   "val_iou_avg": 50.5
+  },
+  {
+   "epoch": 20,
+   "val_miou_avg": 41.74,
+   "val_iou_avg": 50.44
+  }
+ ],
+ "wm_nowarp": [
+  {
+   "epoch": 1,
+   "val_miou_avg": 17.0,
+   "val_iou_avg": 26.73
+  },
+  {
+   "epoch": 2,
+   "val_miou_avg": 19.18,
+   "val_iou_avg": 27.44
+  },
+  {
+   "epoch": 3,
+   "val_miou_avg": 20.27,
+   "val_iou_avg": 30.48
+  },
+  {
+   "epoch": 4,
+   "val_miou_avg": 20.45,
+   "val_iou_avg": 31.14
+  },
+  {
+   "epoch": 5,
+   "val_miou_avg": 22.07,
+   "val_iou_avg": 33.26
+  },
+  {
+   "epoch": 6,
+   "val_miou_avg": 21.54,
+   "val_iou_avg": 33.5
+  },
+  {
+   "epoch": 7,
+   "val_miou_avg": 22.41,
+   "val_iou_avg": 34.8
+  },
+  {
+   "epoch": 8,
+   "val_miou_avg": 22.86,
+   "val_iou_avg": 35.75
+  },
+  {
+   "epoch": 9,
+   "val_miou_avg": 24.43,
+   "val_iou_avg": 36.48
+  },
+  {
+   "epoch": 10,
+   "val_miou_avg": 25.37,
+   "val_iou_avg": 37.68
+  },
+  {
+   "epoch": 11,
+   "val_miou_avg": 25.67,
+   "val_iou_avg": 38.24
+  },
+  {
+   "epoch": 12,
+   "val_miou_avg": 26.71,
+   "val_iou_avg": 39.32
+  }
+ ],
+ "note": "val subset (every 8th val window, 565 windows); epoch counted from 1"
+}

@@ -123,6 +123,20 @@ def forecast_gif(index, wm, row, out, device):
     return frames
 
 
+def lane_change(poses_fut, offset=3.5):
+    """Logged longitudinal motion plus a smooth lateral shift of `offset` metres to the left."""
+    p = poses_fut.clone()
+    s = torch.linspace(1, N_FUTURE, N_FUTURE, device=p.device) / N_FUTURE
+    lat = offset * (1 - torch.cos(np.pi * s)) / 2
+    c, sn = torch.cos(p[:, 2]), torch.sin(p[:, 2])
+    p[:, 0] -= sn * lat
+    p[:, 1] += c * lat
+    xy = torch.cat([torch.zeros(1, 2, device=p.device), p[:, :2]])
+    d = xy[1:] - xy[:-1]
+    p[:, 2] = torch.atan2(d[:, 1], d[:, 0])
+    return p
+
+
 def bend(poses_fut, yaw_rate, accel):
     """Candidate built from the logged speed: constant yaw rate and acceleration."""
     v0 = float(np.linalg.norm(poses_fut[0, :2].cpu().numpy())) / 0.5
@@ -143,7 +157,7 @@ def whatif_gif(index, wm, row, out, device):
     occ, poses = load_window(index, row, device)
     plans = {"Logged trajectory": poses[N_PAST:],
              "Hard brake": bend(poses[N_PAST:], 0.0, -4.0),
-             "Steer left": bend(poses[N_PAST:], 0.35, 0.0)}
+             "Lane change left": lane_change(poses[N_PAST:])}
     preds = {}
     for name, fut in plans.items():
         p = torch.cat([poses[:N_PAST], fut])[None]
@@ -211,7 +225,7 @@ def planning_gif(index, wm, prior_ck, row, out, device, scale=3):
     frames = []
     for k in range(N_FUTURE):
         panels = []
-        for bg, title in ((pred_t[k], "World-model forecast for the chosen plan"), (gt_t[k], "What actually happened")):
+        for bg, title in ((pred_t[k], "Forecast for the chosen plan"), (gt_t[k], "What actually happened")):
             img = bev_image(bg, scale)
             for i in order:
                 img = draw_traj(img, cands[i].cpu().numpy(), risk_color(risk[i]), scale, width=1, dots=False)
@@ -219,7 +233,8 @@ def planning_gif(index, wm, prior_ck, row, out, device, scale=3):
             img = draw_traj(img, plan_np, (60, 140, 255), scale, width=4)
             img = draw_box(img, plan_np[k], scale, (60, 140, 255), 3)
             img = draw_box(img, np.zeros(3), scale, (200, 200, 200), 1)
-            img = img[90:510, 120:480]  # 42 m x 36 m window around the ego
+            img = img[37:375, 165:435]  # 10 m behind to 35 m ahead, 18 m to each side
+            img = np.asarray(Image.fromarray(img).resize((405, 507), Image.NEAREST))
             panels.append(caption(img, title, f"t = +{(k + 1) * 0.5:.1f} s"))
         frames.append(grid(panels))
     legend = Image.new("RGB", (frames[0].shape[1], 34), (0, 0, 0))

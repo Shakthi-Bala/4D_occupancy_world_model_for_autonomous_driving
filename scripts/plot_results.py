@@ -35,8 +35,18 @@ def style(ax):
 
 def end_label(ax, x, y, text, color):
     ax.plot([x], [y], "o", ms=5, color=color, mec=SURFACE, mew=1.5, zorder=5)
-    ax.annotate(text, (x, y), xytext=(6, 0), textcoords="offset points", va="center",
-                fontsize=9, color=INK)
+    ax._end_labels = getattr(ax, "_end_labels", []) + [(x, y, text)]
+
+
+def place_end_labels(ax, min_gap=0.055):
+    """Direct labels at line ends, nudged apart vertically so they never overlap."""
+    items = sorted(getattr(ax, "_end_labels", []), key=lambda t: t[1])
+    (x0, x1), (y0, y1) = ax.get_xlim(), ax.get_ylim()
+    ys = [y for _, y, _ in items]
+    for i in range(1, len(ys)):
+        ys[i] = max(ys[i], ys[i - 1] + min_gap * (y1 - y0))
+    for (x, _, text), ty in zip(items, ys):
+        ax.text(x + 0.015 * (x1 - x0), ty, text, va="center", fontsize=9, color=INK)
 
 
 def forecast_chart():
@@ -59,34 +69,65 @@ def forecast_chart():
         ax.set_xticklabels([f"{h:g}s" for h in hz])
         ax.set_title(title, loc="left", fontsize=11, color=INK)
         ax.set_xlabel("forecast horizon", fontsize=9, color=INK2)
+        place_end_labels(ax)
     fig.tight_layout()
     fig.savefig(OUT / "forecast_horizon.png", dpi=160, facecolor=SURFACE)
 
 
-def planning_chart(name="planning"):
-    res = json.load(open(RES / f"{name}.json"))
-    fig, ax = plt.subplots(figsize=(6.4, 4.2), facecolor=SURFACE)
+def planning_chart():
+    ci = json.load(open(RES / "planning_ci.json"))
+    rows = [("prior+oracle", "GT future (oracle)"), ("prior+wm", "World model (ours)"),
+            ("prior+static", "Static world"), ("prior", "Imitation prior only")]
+    panels = (("col_obst", "Collision with any obstacle (%)"), ("col_agent", "Collision with an agent (%)"),
+              ("off", "Off-road (%)"))
+    fig, axes = plt.subplots(1, 3, figsize=(11, 2.6), facecolor=SURFACE, sharey=True)
+    for ax, (key, title) in zip(axes, panels):
+        style(ax)
+        ax.grid(axis="y", visible=False)
+        ax.grid(axis="x", color=GRID, linewidth=0.8)
+        for i, (m, _) in enumerate(rows):
+            v, (lo, hi) = ci[m][key]["mean"], ci[m][key]["ci95"]
+            c = BLUE if m == "prior+wm" else ("#c9c8c2" if m == "prior+oracle" else "#8d8c86")
+            ax.barh(i, v, height=0.62, color=c)
+            ax.plot([lo, hi], [i, i], color=INK, lw=1.2)
+            ax.text(hi + 0.01 * max(r[key]["ci95"][1] for r in ci.values()), i, f"{v:.2f}", va="center",
+                    fontsize=8.5, color=INK)
+        ax.set_title(title, loc="left", fontsize=10, color=INK)
+        ax.set_xlim(0, 1.18 * max(ci[m][key]["ci95"][1] for m, _ in rows))
+    axes[0].set_yticks(range(len(rows)))
+    axes[0].set_yticklabels([label for _, label in rows], fontsize=9, color=INK)
+    fig.text(0.01, 0.01, "Same 32 candidate trajectories per scene; only the safety cost changes. "
+             "Lines: 95% bootstrap CI over 4,519 val scenes.", fontsize=8, color=INK2)
+    fig.tight_layout(rect=(0, 0.05, 1, 1))
+    fig.savefig(OUT / "planning_safety.png", dpi=160, facecolor=SURFACE)
+
+
+def ablation_chart():
+    curves = json.load(open(RES / "training_curves.json"))
+    warp = json.load(open(RES / "forecast_warp.json"))["miou_1s_2s_3s_avg"][3]
+    fig, ax = plt.subplots(figsize=(6.4, 3.8), facecolor=SURFACE)
     style(ax)
-    ax.grid(axis="x", color=GRID, linewidth=0.8)
-    for key, label, c in (("wm", "World-model cost", BLUE), ("static", "Static-world cost", ORANGE),
-                          ("oracle", "GT-future cost (oracle)", AQUA)):
-        pts = res["sweep"][key]
-        xs = [p["col_obstacle"][3] for p in pts]
-        ys = [p["l2"][3] for p in pts]
-        ax.plot(xs, ys, color=c, lw=2, marker="o", ms=5, mec=SURFACE, mew=1.5)
-        ax.annotate(label, (xs[-1], ys[-1]), xytext=(6, 4), textcoords="offset points", fontsize=9, color=INK)
-    p = res["overall"]["prior"]
-    ax.plot([p["col_obstacle"][3]], [p["l2"][3]], "s", ms=7, color=INK2, mec=SURFACE, mew=1.5)
-    ax.annotate("imitation prior only", (p["col_obstacle"][3], p["l2"][3]), xytext=(6, -12),
-                textcoords="offset points", fontsize=9, color=INK)
-    ax.set_xlabel("collision rate with any obstacle, avg 1-3 s (%)", fontsize=9, color=INK2)
-    ax.set_title("L2 to logged trajectory, avg 1-3 s (m)", loc="left", fontsize=11, color=INK)
+    for key, label, c in (("wm", "Warp + residual (ours)", BLUE), ("wm_nowarp", "No warp, trajectory via adaLN only", ORANGE)):
+        ep = [r["epoch"] for r in curves[key]]
+        v = [r["val_miou_avg"] for r in curves[key]]
+        ax.plot(ep, v, color=c, lw=2)
+        ax.plot([ep[-1]], [v[-1]], "o", ms=5, color=c, mec=SURFACE, mew=1.5, zorder=5)
+        # below its end point for the no-warp curve, which ends right on the DOME reference line
+        ax.text(ep[-1] + 0.4, v[-1] + (0.0 if key == "wm" else -2.0), label, va="center", fontsize=9, color=INK)
+    for y, label in ((warp, "ego-warp, 0 parameters"), (27.10, "DOME-O (paper)")):
+        ax.axhline(y, color=INK2, lw=1, ls=(0, (3, 3)))
+        ax.annotate(label, (1, y), xytext=(0, 4), textcoords="offset points", fontsize=8.5, color=INK2)
+    ax.set_xlim(0.5, 34)
+    ax.set_xticks([1, 5, 10, 15, 20])
+    ax.set_xlabel("training epoch", fontsize=9, color=INK2)
+    ax.set_title("Forecast mIoU, avg 1-3 s (%)", loc="left", fontsize=11, color=INK)
     fig.tight_layout()
-    fig.savefig(OUT / "planning_tradeoff.png", dpi=160, facecolor=SURFACE)
+    fig.savefig(OUT / "ablation_warp.png", dpi=160, facecolor=SURFACE)
 
 
 if __name__ == "__main__":
     OUT.mkdir(exist_ok=True)
     forecast_chart()
-    if (RES / "planning.json").exists():
+    ablation_chart()
+    if (RES / "planning_ci.json").exists():
         planning_chart()

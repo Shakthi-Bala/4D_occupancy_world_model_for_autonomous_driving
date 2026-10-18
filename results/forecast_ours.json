@@ -1,0 +1,52 @@
+{
+  "method": "ours",
+  "ckpt": "/scratch/sbalamurugan/occwm_runs/wm/best.pt",
+  "n_windows": 4519,
+  "miou": [
+    56.29,
+    49.25,
+    44.51,
+    40.94,
+    38.08,
+    35.57
+  ],
+  "iou": [
+    60.87,
+    55.79,
+    52.53,
+    49.98,
+    47.88,
+    45.87
+  ],
+  "miou_1s_2s_3s_avg": [
+    49.25,
+    40.94,
+    35.57,
+    41.92
+  ],
+  "iou_1s_2s_3s_avg": [
+    55.79,
+    49.98,
+    45.87,
+    50.54
+  ],
+  "per_class_iou_3s": {
+    "others": 44.65,
+    "barrier": 45.05,
+    "bicycle": 23.85,
+    "bus": 27.2,
+    "car": 30.96,
+    "construction_vehicle": 42.88,
+    "motorcycle": 25.82,
+    "pedestrian": 14.34,
+    "traffic_cone": 31.24,
+    "trailer": 34.83,
+    "truck": 35.22,
+    "driveable_surface": 45.65,
+    "other_flat": 38.35,
+    "sidewalk": 37.18,
+    "terrain": 33.33,
+    "manmade": 46.85,
+    "vegetation": 47.21
+  }
+}
