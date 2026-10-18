@@ -3,7 +3,8 @@
 import numpy as np
 from PIL import Image, ImageDraw
 
-from .constants import CLASS_COLORS, FREE, GRID_SHAPE, PC_RANGE, VOXEL_SIZE
+from .constants import (CLASS_COLORS, EGO_LENGTH, EGO_REAR_OVERHANG, EGO_WIDTH, FREE, PC_RANGE,
+                        VOXEL_SIZE)
 
 
 def bev_image(occ, scale=2, bg=(18, 18, 22)):
@@ -26,14 +27,12 @@ def bev_image(occ, scale=2, bg=(18, 18, 22)):
 
 def metric_to_pixel(x, y, scale=2):
     """Ego-frame metres -> pixel (col, row) in a bev_image of the given scale."""
-    h, w = GRID_SHAPE[0] * scale, GRID_SHAPE[1] * scale
     row = (PC_RANGE[3] - x) / VOXEL_SIZE * scale
     col = (PC_RANGE[4] - y) / VOXEL_SIZE * scale
     return col, row
 
 
 def draw_ego(img, scale=2, color=(255, 255, 255)):
-    from .constants import EGO_LENGTH, EGO_REAR_OVERHANG, EGO_WIDTH
     im = Image.fromarray(img)
     d = ImageDraw.Draw(im)
     x0, x1 = -EGO_REAR_OVERHANG, EGO_LENGTH - EGO_REAR_OVERHANG

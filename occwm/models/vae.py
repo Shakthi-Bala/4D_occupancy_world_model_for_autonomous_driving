@@ -8,7 +8,6 @@ keeps the latent a plain image-like grid the world model can warp with ego motio
 import numpy as np
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 
 from ..constants import GRID_SHAPE, NUM_CLASSES
 
