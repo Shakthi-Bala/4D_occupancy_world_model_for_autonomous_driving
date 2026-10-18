@@ -66,12 +66,16 @@ class OccVAE(nn.Module):
         mean, logvar = self.encoder(e).chunk(2, dim=1)
         return mean, logvar.clamp(-30, 20)
 
-    def decode(self, z):
-        """z: (B, C, 50, 50) -> logits (B, NUM_CLASSES, X, Y, Z)."""
+    def decode_features(self, z):
+        """z: (B, C, 50, 50) -> per-voxel features (B, voxel_feat, X, Y, Z)."""
         f = self.decoder(z)
         b, _, x, y = f.shape
         f = f.reshape(b, self.z_cells, self.voxel_feat, x, y).permute(0, 2, 3, 4, 1)
-        return self.head(f + self.height_emb)
+        return f + self.height_emb
+
+    def decode(self, z):
+        """z: (B, C, 50, 50) -> logits (B, NUM_CLASSES, X, Y, Z)."""
+        return self.head(self.decode_features(z))
 
     def forward(self, occ, sample=True):
         mean, logvar = self.encode(occ)

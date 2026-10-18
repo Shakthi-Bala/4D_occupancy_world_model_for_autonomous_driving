@@ -1,0 +1,52 @@
+{
+  "method": "copy",
+  "ckpt": null,
+  "n_windows": 4519,
+  "miou": [
+    21.13,
+    14.95,
+    12.25,
+    10.61,
+    9.48,
+    8.62
+  ],
+  "iou": [
+    30.09,
+    24.49,
+    21.64,
+    19.8,
+    18.43,
+    17.35
+  ],
+  "miou_1s_2s_3s_avg": [
+    14.95,
+    10.61,
+    8.62,
+    11.39
+  ],
+  "iou_1s_2s_3s_avg": [
+    24.49,
+    19.8,
+    17.35,
+    20.55
+  ],
+  "per_class_iou_3s": {
+    "others": 2.87,
+    "barrier": 9.61,
+    "bicycle": 2.55,
+    "bus": 8.56,
+    "car": 8.32,
+    "construction_vehicle": 5.23,
+    "motorcycle": 2.05,
+    "pedestrian": 1.79,
+    "traffic_cone": 4.17,
+    "trailer": 8.05,
+    "truck": 7.04,
+    "driveable_surface": 27.84,
+    "other_flat": 14.96,
+    "sidewalk": 14.49,
+    "terrain": 11.79,
+    "manmade": 8.37,
+    "vegetation": 8.78
+  }
+}
