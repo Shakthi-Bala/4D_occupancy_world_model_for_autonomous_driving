@@ -5,6 +5,7 @@ cells of a column are concatenated), so the network is a 2D conv net over the BE
 keeps the latent a plain image-like grid the world model can warp with ego motion.
 """
 
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -85,3 +86,14 @@ class OccVAE(nn.Module):
 
 def kl_divergence(mean, logvar):
     return 0.5 * (mean.pow(2) + logvar.exp() - 1.0 - logvar).mean()
+
+
+@torch.no_grad()
+def latent_stats(vae, frames, device, n=256):
+    """Per-channel mean / std of the VAE latent means over n evenly spread frames of a dataset."""
+    zs = []
+    for i in np.linspace(0, len(frames) - 1, n).astype(int):
+        mean, _ = vae.encode(frames[i][None].to(device))
+        zs.append(mean.float())
+    z = torch.cat(zs)
+    return z.mean((0, 2, 3)).cpu(), z.std((0, 2, 3)).cpu()

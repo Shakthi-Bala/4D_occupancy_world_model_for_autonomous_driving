@@ -18,25 +18,13 @@ import _path  # noqa: F401
 from occwm.data import DEFAULT_ROOT, Occ3DIndex, OccFrames, OccSequences
 from occwm.losses import occupancy_loss
 from occwm.metrics import IoUAccumulator
-from occwm.models.vae import OccVAE
+from occwm.models.vae import OccVAE, latent_stats
 from occwm.models.world_model import OccWorldModel
 from occwm.train_utils import (Logger, all_reduce_, cosine_lr, is_main, save_ckpt, setup_ddp,
                                unwrap)
 from occwm.viz import bev_image, hstack, label, vstack
 
 N_PAST, N_FUTURE = 5, 6
-
-
-@torch.no_grad()
-def latent_stats(vae, index, device, n=256):
-    """Per-channel mean / std of VAE latent means over a spread of training frames."""
-    ds = OccFrames(index, "train")
-    zs = []
-    for i in np.linspace(0, len(ds) - 1, n).astype(int):
-        mean, _ = vae.encode(ds[i][None].to(device))
-        zs.append(mean.float())
-    z = torch.cat(zs)
-    return z.mean((0, 2, 3)).cpu(), z.std((0, 2, 3)).cpu()
 
 
 @torch.no_grad()
@@ -100,7 +88,7 @@ def main():
     vae = OccVAE(latent_ch=vck["args"]["latent_ch"])
     vae.load_state_dict(vck["model"])
     vae.to(device)
-    shift, scale = latent_stats(vae, index, device)
+    shift, scale = latent_stats(vae, OccFrames(index, "train"), device)
     args.latent_ch = vck["args"]["latent_ch"]
 
     model = OccWorldModel(vae, shift, scale, N_PAST, N_FUTURE, args.dim, args.depth, args.heads).to(device)
