@@ -1,0 +1,7 @@
+{
+  "n_frames": 6019,
+  "miou": 88.53,
+  "iou": 78.69,
+  "latent": "50x50x32",
+  "compression": 8.0
+}

@@ -118,10 +118,9 @@ class OccWorldModel(nn.Module):
         self.vae = vae
         for p in vae.parameters():
             p.requires_grad = False
-        if finetune_decoder:
-            for m in (vae.decoder, vae.head):
-                for p in m.parameters():
-                    p.requires_grad = True
+        if finetune_decoder:  # vae.head stays frozen: RefineHead replaces it
+            for p in vae.decoder.parameters():
+                p.requires_grad = True
             vae.height_emb.requires_grad = True
         self.register_buffer("latent_shift", torch.as_tensor(latent_shift).float().view(1, -1, 1, 1))
         self.register_buffer("latent_scale", torch.as_tensor(latent_scale).float().view(1, -1, 1, 1))
