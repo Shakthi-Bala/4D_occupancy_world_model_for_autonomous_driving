@@ -7,13 +7,13 @@ the ego frame of the current frame t.
 import numpy as np
 import torch
 
-from .constants import (AGENT_CLASSES, DRIVEABLE, EGO_LENGTH, EGO_REAR_OVERHANG, EGO_WIDTH,
-                        EGO_Z_RANGE, GRID_SHAPE, NUM_CLASSES, OBSTACLE_CLASSES, PC_RANGE,
+from .constants import (AGENT_CLASSES, EGO_LENGTH, EGO_REAR_OVERHANG, EGO_WIDTH, EGO_Z_RANGE,
+                        GRID_SHAPE, NON_DRIVABLE, NUM_CLASSES, OBSTACLE_CLASSES, PC_RANGE,
                         VOXEL_SIZE)
 from .geometry import rel_pose, se2
 
 Z_BODY = slice(int((EGO_Z_RANGE[0] - PC_RANGE[2]) / VOXEL_SIZE),
-               int(np.ceil((EGO_Z_RANGE[1] - PC_RANGE[2]) / VOXEL_SIZE)))  # cells 3..6
+               int(np.ceil((EGO_Z_RANGE[1] - PC_RANGE[2]) / VOXEL_SIZE)))  # cells 4..6
 Z_GROUND = slice(0, 4)
 
 
@@ -67,28 +67,37 @@ def place_footprint(traj, frame_poses, pts):
     return torch.einsum("nfij,pj->nfpi", T_f_c, hom)[..., :2]
 
 
-def collisions(traj, frame_poses, occ_frames, classes=AGENT_CLASSES, margin=0.0):
+def collisions(traj, frame_poses, occ_frames, classes=AGENT_CLASSES, margin=0.0, ignore_ego=True):
     """Does the ego box at each waypoint overlap `classes` in the matching occupancy frame?
 
     traj (N, F, 3); frame_poses (F, 3); occ_frames (F, X, Y, Z). Returns (N, F) bool.
     Used both for evaluation (GT future frames + GT poses) and for privileged/static costs.
+
+    ignore_ego: each occupancy frame was recorded with the ego at its centre, so anything
+    labelled inside that box is label noise (~2% of Occ3D frames). Masking it makes the logged
+    trajectory collision-free by construction without changing the rule for other plans.
     """
     pts = footprint_points(margin, device=traj.device)
     where = place_footprint(traj, frame_poses, pts)                    # N F P 2
+    xs, ys = footprint_cells(0.0)
     out = torch.zeros(where.shape[:2], dtype=torch.bool, device=traj.device)
     for k in range(where.shape[1]):
-        out[:, k] = lookup(class_mask_2d(occ_frames[k], classes), where[:, k]).any(-1)
+        mask = class_mask_2d(occ_frames[k], classes)
+        if ignore_ego:
+            mask[xs, ys] = False
+        out[:, k] = lookup(mask, where[:, k]).any(-1)
     return out
 
 
 def offroad(traj, frame_poses, occ_frames):
-    """Fraction of footprint ground columns without driveable surface, (N, F) float."""
+    """Fraction of footprint ground columns that are a non-drivable surface, (N, F) float.
+    Unobserved ground (free) counts as fine; see NON_DRIVABLE."""
     pts = footprint_points(0.0, step=0.4, device=traj.device)
     where = place_footprint(traj, frame_poses, pts)
     out = torch.zeros(where.shape[:2], device=traj.device)
     for k in range(where.shape[1]):
-        drive = class_mask_2d(occ_frames[k], [DRIVEABLE], Z_GROUND)
-        out[:, k] = 1.0 - lookup(drive, where[:, k]).float().mean(-1)
+        bad = class_mask_2d(occ_frames[k], NON_DRIVABLE, Z_GROUND)
+        out[:, k] = lookup(bad, where[:, k]).float().mean(-1)
     return out
 
 
@@ -108,7 +117,7 @@ def predicted_costs(logits, x_off=0, y_off=0, margin=0.4):
 
     logits: (N, F, K, X', Y', Z), possibly a crop; (x_off, y_off) = crop origin in the full grid.
     Returns collision probability (N, F) = max obstacle probability inside the box, and
-    off-road (N, F) = 1 - mean over box columns of the best ground-level driveable probability.
+    off-road (N, F) = mean over box columns of the ground-level non-drivable probability.
     """
     xs, ys = footprint_cells(margin)
     xs = slice(xs.start - x_off, xs.stop - x_off)
@@ -116,6 +125,6 @@ def predicted_costs(logits, x_off=0, y_off=0, margin=0.4):
     box = logits[:, :, :, xs, ys].float().softmax(2)                    # N F K bx by Z
     p_obst = box[:, :, OBSTACLE_CLASSES][..., Z_BODY].sum(2)            # N F bx by zb
     col = p_obst.flatten(2).amax(-1)
-    p_drive = box[:, :, DRIVEABLE][..., Z_GROUND].amax(-1)              # N F bx by
-    off = 1.0 - p_drive.flatten(2).mean(-1)
+    p_bad = box[:, :, NON_DRIVABLE][..., Z_GROUND].sum(2).amax(-1)     # N F bx by
+    off = p_bad.flatten(2).mean(-1)
     return col, off

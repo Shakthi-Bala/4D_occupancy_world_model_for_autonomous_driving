@@ -10,7 +10,7 @@ CAR = 4
 def scene_with_car_at(x_m, y_m=0.0):
     occ = torch.full(GRID_SHAPE, FREE, dtype=torch.long)
     ix, iy = int((x_m + 40) / 0.4), int((y_m + 40) / 0.4)
-    occ[ix - 2:ix + 3, iy - 2:iy + 3, 3:6] = CAR
+    occ[ix - 2:ix + 3, iy - 2:iy + 3, 3:7] = CAR
     return occ
 
 
@@ -44,7 +44,7 @@ def test_predicted_cost_reads_the_box_at_the_grid_centre():
     logits[:, :, FREE] = 10.0
     col, _ = predicted_costs(logits, margin=0.0)
     assert col.item() < 1e-3
-    logits[0, 0, CAR, xs.start + 2, ys.start + 1, 4] = 20.0
+    logits[0, 0, CAR, xs.start + 2, ys.start + 1, 5] = 20.0
     col, _ = predicted_costs(logits, margin=0.0)
     assert col.item() > 0.99
 
@@ -54,5 +54,12 @@ def test_footprint_cells_match_collision_checker():
     xs, ys = footprint_cells(margin=0.0)
     for ix, iy in [(xs.start, ys.start), (xs.stop - 1, ys.stop - 1)]:
         occ = torch.full(GRID_SHAPE, FREE, dtype=torch.long)
-        occ[ix, iy, 4] = CAR
-        assert collisions(torch.zeros(1, 1, 3), torch.zeros(1, 3), occ[None]).item()
+        occ[ix, iy, 5] = CAR
+        assert collisions(torch.zeros(1, 1, 3), torch.zeros(1, 3), occ[None], ignore_ego=False).item()
+
+
+def test_label_noise_inside_the_recorded_ego_box_is_ignored():
+    xs, ys = footprint_cells(margin=0.0)
+    occ = torch.full(GRID_SHAPE, FREE, dtype=torch.long)
+    occ[xs.start + 3, ys.start + 2, 5] = CAR  # a stray voxel where the ego itself was
+    assert not collisions(torch.zeros(1, 1, 3), torch.zeros(1, 3), occ[None]).item()

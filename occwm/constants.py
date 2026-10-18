@@ -18,6 +18,9 @@ CLASS_NAMES = [
 NUM_CLASSES = len(CLASS_NAMES)  # 18
 FREE = 17
 DRIVEABLE = 11
+# Ground classes the ego must not drive on. The ground right under the ego is never observed
+# (labelled free), so off-road is judged by *positive* evidence of these surfaces.
+NON_DRIVABLE = [12, 13, 14, 16]  # other_flat, sidewalk, terrain, vegetation
 
 # Classes scored in mIoU. Follows OccWorld / DOME: every semantic class except `free`.
 EVAL_CLASSES = list(range(17))
@@ -31,8 +34,9 @@ OBSTACLE_CLASSES = AGENT_CLASSES + [0, 1, 8, 15, 16]
 EGO_LENGTH = 4.084
 EGO_WIDTH = 1.85
 EGO_REAR_OVERHANG = 1.0  # rear axle -> rear bumper
-# Body height band used for collision checks (z in the ego frame).
-EGO_Z_RANGE = (0.2, 1.8)
+# Body height band used for collision checks (z in the ego frame). Starts above curb height:
+# below 0.6 m, sloped road and kerbs poke into the box even at logged poses.
+EGO_Z_RANGE = (0.6, 1.8)
 
 # Palette used by every figure in the repo (RGB 0-255), close to the Occ3D / OccWorld colours.
 CLASS_COLORS = np.array([
