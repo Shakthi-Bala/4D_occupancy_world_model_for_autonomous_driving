@@ -161,6 +161,46 @@
    "epoch": 12,
    "val_miou_avg": 26.71,
    "val_iou_avg": 39.32
+  },
+  {
+   "epoch": 13,
+   "val_miou_avg": 27.44,
+   "val_iou_avg": 39.61
+  },
+  {
+   "epoch": 14,
+   "val_miou_avg": 27.81,
+   "val_iou_avg": 39.85
+  },
+  {
+   "epoch": 15,
+   "val_miou_avg": 28.52,
+   "val_iou_avg": 40.53
+  },
+  {
+   "epoch": 16,
+   "val_miou_avg": 28.99,
+   "val_iou_avg": 40.77
+  },
+  {
+   "epoch": 17,
+   "val_miou_avg": 29.3,
+   "val_iou_avg": 41.04
+  },
+  {
+   "epoch": 18,
+   "val_miou_avg": 29.8,
+   "val_iou_avg": 41.3
+  },
+  {
+   "epoch": 19,
+   "val_miou_avg": 29.73,
+   "val_iou_avg": 41.37
+  },
+  {
+   "epoch": 20,
+   "val_miou_avg": 29.99,
+   "val_iou_avg": 41.53
   }
  ],
  "note": "val subset (every 8th val window, 565 windows); epoch counted from 1"

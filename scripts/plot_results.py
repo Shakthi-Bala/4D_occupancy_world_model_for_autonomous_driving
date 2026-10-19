@@ -107,17 +107,16 @@ def ablation_chart():
     warp = json.load(open(RES / "forecast_warp.json"))["miou_1s_2s_3s_avg"][3]
     fig, ax = plt.subplots(figsize=(6.4, 3.8), facecolor=SURFACE)
     style(ax)
-    for key, label, c in (("wm", "Warp + residual (ours)", BLUE), ("wm_nowarp", "No warp, trajectory via adaLN only", ORANGE)):
+    for key, label, c in (("wm", "Warp + residual (ours)", BLUE), ("wm_nowarp", "No warp (adaLN only)", ORANGE)):
         ep = [r["epoch"] for r in curves[key]]
         v = [r["val_miou_avg"] for r in curves[key]]
         ax.plot(ep, v, color=c, lw=2)
         ax.plot([ep[-1]], [v[-1]], "o", ms=5, color=c, mec=SURFACE, mew=1.5, zorder=5)
-        # below its end point for the no-warp curve, which ends right on the DOME reference line
-        ax.text(ep[-1] + 0.4, v[-1] + (0.0 if key == "wm" else -2.0), label, va="center", fontsize=9, color=INK)
+        ax.text(ep[-1] + 0.4, v[-1], label, va="center", fontsize=9, color=INK)
     for y, label in ((warp, "ego-warp, 0 parameters"), (27.10, "DOME-O (paper)")):
         ax.axhline(y, color=INK2, lw=1, ls=(0, (3, 3)))
         ax.annotate(label, (1, y), xytext=(0, 4), textcoords="offset points", fontsize=8.5, color=INK2)
-    ax.set_xlim(0.5, 34)
+    ax.set_xlim(0.5, 33)
     ax.set_xticks([1, 5, 10, 15, 20])
     ax.set_xlabel("training epoch", fontsize=9, color=INK2)
     ax.set_title("Forecast mIoU, avg 1-3 s (%)", loc="left", fontsize=11, color=INK)

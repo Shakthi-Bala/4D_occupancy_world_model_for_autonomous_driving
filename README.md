@@ -18,6 +18,7 @@ A world model that forecasts how the 3D semantic occupancy around a self-driving
 | OccWorld-O ([paper](https://arxiv.org/abs/2311.16038)) | predicted | 25.78 / 15.14 / 10.51 | 17.14 | 34.63 / 25.07 / 20.18 | 26.63 |
 | DOME-O ([paper](https://arxiv.org/abs/2410.10429)) | ✓ | 35.11 / 25.89 / 20.29 | 27.10 | 43.99 / 35.36 / 29.74 | 36.36 |
 | Ego-warp baseline (0 parameters) | ✓ | 40.94 / 32.52 / 27.77 | 33.74 | 50.41 / 41.54 / 36.27 | 42.74 |
+| This model without the warp (ablation) | ✓ | 35.90 / 29.34 / 25.20 | 30.15 | 46.67 / 41.05 / 36.95 | 41.56 |
 | **This model** | ✓ | **49.25 / 40.94 / 35.57** | **41.92** | **55.79 / 49.98 / 45.87** | **50.54** |
 
 Copy-last-frame reproduces the published Copy&Paste row (11.33 / 20.52) to within 0.06, which checks that the evaluation matches the papers'. Training took 1.5 h (tokenizer, 4×A100) plus 3.3 h (world model, 4×H200); DOME reports 2,000 epochs on 32 RTX 4090s.
@@ -53,7 +54,7 @@ In the ego frame, most of what "changes" between now and 3 s from now is the car
 
 <p align="center"><img src="assets/ablation_warp.png" width="62%" alt="Training curves with and without the warp"></p>
 
-Ablation: the same architecture trained with the warp disabled (trajectory fed only through adaLN conditioning, as in DOME) reaches 26.7 mIoU after 12 epochs, against 41.5 with the warp at the same epoch. Same data, same batch size, same validation subset. The no-warp run lands right around DOME's number, which suggests the gap comes from where the trajectory enters the model, not from model size or training budget.
+Ablation: the same architecture, data, batch size and 20-epoch schedule, with the warp switched off, so the trajectory enters only through adaLN conditioning, as in DOME. On the full val set it reaches **30.15 mIoU / 41.56 IoU, against 41.92 / 50.54 with the warp**. It still beats DOME's published 27.10, but it never catches up with the zero-parameter ego-warp (33.74). Without the warp, the network has to learn the geometry of its own motion from data, and after 20 epochs it still does that worse than a fixed resampling. Giving it the warp explicitly is worth 11.8 mIoU here. (Curves: every 8th val window, evaluated after each epoch.)
 
 ## Does the forecast follow the plan?
 
